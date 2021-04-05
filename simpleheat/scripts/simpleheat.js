@@ -107,7 +107,7 @@ simpleheat.prototype = {
         for (var i = 0, len = this._data.length, p; i < len; i++) {
             p = this._data[i];
             ctx.globalAlpha = Math.min(Math.max(p[2] / this._max, minOpacity === undefined ? 0.05 : minOpacity), 1);
-            ctx.drawImage(this._circle, p[0] - this._r, p[1] - this._r);
+            ctx.drawImage(this._circle, (p[0]+ (this._width / 2)) - this._r, (p[1]+ (this._height / 2)) - this._r); //moved X & Y-origin to center of canvas
         }
 
         // colorize the heatmap, using opacity value of each pixel to get the right color from our gradient
