@@ -5,7 +5,7 @@ var iso = [];
 var cases = [];
 var coordinates = [];
 var mapData = [];
-
+var filteredData = [];
 
 //Load JSON-file containing datasets
 function loadJSON(callback, jsonFile) {
@@ -40,7 +40,7 @@ loadJSON(function (response) {
             if (coordinates[j][0] == json[iso[i]].location) {
                 index = coordinates.indexOf(coordinates[j][0]);
                 locForMap[i] = coordinates[j][0];
-                cases[i] = (parseInt(json[iso[i]].total_cases / 10000));
+                cases[i] = (parseInt(json[iso[i]].total_cases / 1000000));
             }
         }
     };
@@ -63,12 +63,15 @@ loadJSON(function (response) {
     }
 }, myFiles[1]);
 
-var testdata = [[33, 67, 5]];
+// Add delay to heatmap render in order to let mapData configure
 setTimeout(function () {
-    console.log(testdata[0]);
-    console.log(mapData[0]);
-    var heat = simpleheat('canvas').max(10).data(testdata),
-        frame;
+
+    // Filter null-values from mapdata before adding to heatmap
+    filteredData = mapData.filter(function (el) {
+        return el != null;
+    });
+
+    var heat = simpleheat('canvas').max(10).data(filteredData);
     heat.gradient({
         0.25: 'blue',
         0.50: 'lime',
@@ -78,16 +81,10 @@ setTimeout(function () {
 
     function draw() {
         heat.draw();
-        frame = null;
     }
-
     draw();
 
-    get('canvas').onmousemove = function (e) {
-        heat.add([e.layerX, e.layerY, 0.01]);
-        frame = frame || window.requestAnimationFrame(draw);
-    };
-
+    //Change radius and blur functions (Not removed since they may be used to measure scalability)
     var radius = get('radius'),
         blur = get('blur'),
         changeType = 'oninput' in radius ? 'oninput' : 'onchange';
