@@ -4,3 +4,6 @@
     border: 1px solid #000000;
     margin: auto;
 }
+.options { position: fixed; top: 10; right: 460; padding: 10px; background: rgba(255,255,255,0.6);
+            border-bottom: 1px solid #ccc; border-left: 1px solid #ccc; line-height: 1; }
+.options label { width: 60px; float: left; text-align: right; margin-right: 10px; color: #555; }
