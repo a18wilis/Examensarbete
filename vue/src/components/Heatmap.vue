@@ -1,22 +1,22 @@
 <template>
-  <canvas id='canvas'/>
+        <canvas id='canvas'/>
 </template>
 
 <script>
 import * as simpleheat from 'simpleheat';
-
 export default {
     name: 'Heatmap',
     mounted() {
         this.init();
     },
     methods: {
+
         init() {
         
-            //Load JSON-file containing dataset
-            var files = ['https://raw.githubusercontent.com/a18wilis/Examensarbete/main/dataset/owid-covid-data_040521.json', 'https://raw.githubusercontent.com/a18wilis/Examensarbete/main/dataset/countries.json'];
+        //Load JSON-file containing dataset
+        var files = ['https://raw.githubusercontent.com/a18wilis/Examensarbete/main/dataset/owid-covid-data_040521.json', 'https://raw.githubusercontent.com/a18wilis/Examensarbete/main/dataset/countries.json'];
             
-            var iso = [];
+        var iso = [];
         var cases = [];
         var coordinates = [];
         var mapData = [];
@@ -36,21 +36,6 @@ export default {
             };
             xObj.send(null);
         }
-        
-        //Format Date-variable to string (YYYY-MM-DD)
-        function formatDate(date) {
-            var d = new Date(date),
-                month = '' + (d.getMonth() + 1),
-                day = '' + d.getDate(),
-                year = d.getFullYear();
-
-            if (month.length < 2)
-                month = '0' + month;
-            if (day.length < 2)
-                day = '0' + day;
-
-            return [year, month, day].join('-');
-        }
 
         // Convert JSON to string and store it
         // Extract ISO-codes and total cases
@@ -65,29 +50,27 @@ export default {
 
             // Extract location-name and total cases for each ISO-code
             var locForMap = [];
-            var start = new Date('2020-02-24'); //Collect data starting from start date
-            var end = new Date('2021-04-04');   //up until end date
-            var formatted;
-
+            
+            //Access array of every country by ISO-code
             for (i = 0; i < iso.length; i++) {
                 for (var j = 0; j < coordinates.length; j++) {
                     if (coordinates[j][0] == json[iso[i]].location) {
                         locForMap[i] = coordinates[j][0];
-                        var loop = new Date(start);
-                        while (loop <= end) {
-                            formatted = formatDate(loop);
-                            for (var k = 0; k < json[iso[i]].data.length; k++) {
-                                if (json[iso[i]].data[k].date === formatted) {
-                                    cases[i] = +parseInt(json[iso[i]].data[k].total_cases);
-                                }
+
+                        //Get total cases for every country
+                        json[iso[i]].data.forEach(function (obj) {
+                            if (Object.keys(obj).includes("total_cases")) {
+                                cases[i] = ++obj.total_cases;
                             }
-                            var newDate = loop.setDate(loop.getDate() + 1);
-                            loop = new Date(newDate);
-                        }
+                        })
+                        console.log(iso[i] + " " + cases[i]);
                     }
                 }
             }
-            console.log("Fetchted total cases in " + cases.length + " locations between " + formatDate(start) + " and " + formatDate(end));
+
+            console.log("Fetchted total cases in " + cases.length);
+
+            //Push coordinates and total cases data to a single array
             for (i = 0; i < locForMap.length; i++) {
                 for (j = 0; j < coordinates.length; j++) {
                     if (locForMap[i] == coordinates[j][0]) {
@@ -106,7 +89,7 @@ export default {
             var heat = simpleheat('canvas').max(1000000).data(filteredData);
 
             //Change radius, for testing
-            heat.radius(25, 10);
+            heat.radius(45, 45);
 
             heat.gradient({
                 0.25: 'blue',
