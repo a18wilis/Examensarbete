@@ -1,0 +1,117 @@
+// ==UserScript==
+// @name         Simpleheat Data Measure Tool
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Measure Data Values Of Rendered Heatmaps
+// @author       William Isaksson
+// @match       http://localhost:3000/
+// @grant        none
+// ==/UserScript==
+
+if (localStorage.getItem("r") == null) {
+        localStorage.setItem("r", 0);
+    }
+if (localStorage.getItem("g") == null) {
+        localStorage.setItem("g", 0);
+    }
+if (localStorage.getItem("b") == null) {
+        localStorage.setItem("b", 0);
+    }
+
+
+//Create 'Get Average Color!'-button
+var btn = document.createElement ('div');
+btn.innerHTML = '<button id="getColorBtn" type="button"> Get Average Color!</button>';
+btn.setAttribute ('id', 'getColorBtn');
+document.body.appendChild (btn);
+document.getElementById("getColorBtn").addEventListener("click", getAverageRGB, false);
+
+//Display result on page
+function showResult(rgb){
+
+    //Remove previous result if it exists
+    var divExists = document.getElementById('avgColor');
+    if(divExists){
+       divExists.parentNode.removeChild(divExists);
+}
+
+    //Create result element
+    var result = document.createElement ('div');
+    result.setAttribute('id','avgColor');
+    result.innerHTML ='<p> Average RGB: ' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + '</p>';
+    result.style.width = '200px';
+    result.style.height = '70px';
+    result.style.backgroundColor = 'rgb('+rgb.r+','+rgb.g+','+rgb.b+')';
+    document.body.appendChild(result);
+}
+
+
+
+function getAverageRGB() {
+    var
+    imgEl = document.getElementById('canvas'),
+    blockSize = 5, // Analyze every 5th pixel
+        defaultRGB = {r:255,g:153,b:0}, // Set defaultRGB if script doesn't work
+        canvas = document.createElement('canvas'),
+        context = canvas.getContext && canvas.getContext('2d'),
+        data, width, height,
+        i = -4,
+        length,
+        rgb = {r:0,g:0,b:0},
+        count = 0;
+
+    if (!context) {
+        return defaultRGB;
+    }
+
+    height = canvas.height = imgEl.naturalHeight || imgEl.offsetHeight || imgEl.height;
+    width = canvas.width = imgEl.naturalWidth || imgEl.offsetWidth || imgEl.width;
+
+    context.drawImage(imgEl, 0, 0);
+
+    try {
+        data = context.getImageData(0, 0, width, height);
+    } catch(e) {
+        /* security error, img on diff domain */alert('x');
+        return defaultRGB;
+    }
+
+    length = data.data.length;
+    while ( (i += blockSize * 4) < length ) {
+
+        var allZero = true;
+        for(var j = 0; j < 3; j++){
+            if(data.data[i+j] != 0){
+                allZero = false;
+            }
+        }
+
+        if(allZero == false){
+        ++count;
+        console.log(data.data[i], data.data[i+1], data.data[i+2]);
+        rgb.r += data.data[i];
+        rgb.g += data.data[i+1];
+        rgb.b += data.data[i+2];
+
+        /*let r= JSON.parse(localStorage.getItem("r"));
+        r += ", " + data.data[i];
+        localStorage.setItem("r", JSON.stringify(r));
+
+        let g = JSON.parse(localStorage.getItem("g"));
+        g += ", " + data.data[i+1];
+        localStorage.setItem("g", JSON.stringify(g));
+
+        let b = JSON.parse(localStorage.getItem("b"));
+        b += ", " + data.data[i+2];
+        localStorage.setItem("b", JSON.stringify(b)); */
+        }
+    }
+
+    // ~~ used to floor values
+    rgb.r = ~~(rgb.r/count);
+    rgb.g = ~~(rgb.g/count);
+    rgb.b = ~~(rgb.b/count);
+
+    // return result
+    showResult(rgb);
+}
