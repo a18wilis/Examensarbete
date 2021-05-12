@@ -17,7 +17,7 @@ class Heatmap extends React.Component {
         var coordinates = [];
         var mapData = [];
         var filteredData = [];
-        
+
         function get(id) {
             return document.getElementById(id).value;
         }
@@ -108,26 +108,45 @@ class Heatmap extends React.Component {
             // Parse JSON string to JSON object
             var json = JSON.parse(response);
 
+            //Format longitude and latitude to correct X
+            function formatLon(lon) {
+                lon = (lon * 3.5555) + 640;
+                return lon;
+            }
+
+            function formatLat(lat) {
+                lat = (lat * -3.5555) + 320;
+                return lat;
+            }
+
             //Extract latitude and longitude coordinates from all locations
             for (var i = 0; i < json.length; i++) {
-                coordinates.push([json[i].name, parseInt(json[i].latitude), parseInt(json[i].longitude)]);
+                coordinates.push([json[i].name, formatLon(json[i].longitude), formatLat(json[i].latitude)]);
             }
         }, files[1]);
     }
 
     render() {
-        return (
-            <div>
-                <canvas id = "canvas" width = "1000" height = "600" > < /canvas>
-                Point Radius: <input type = "number" id ="prad"/>
-                Blur Radius: <input type = "number" id ="brad"/>
-                <button onClick = {this.renderMap}> Render </button>
-            </div>
+        return ( <
+            div >
+            <
+            canvas id = "canvas"
+            width = "1280"
+            height = "640" > < /canvas>
+            <p> Point Radius: < input type = "number"
+            id = "prad" / >
+            Blur Radius: < input type = "number"
+            id = "brad" / >
+            <
+            button onClick = {
+                this.renderMap
+            } > Render < /button> </p> <
+            /div>
         )
     }
 }
 
-ReactDOM.render( 
-        <Heatmap/ >,
+ReactDOM.render( <
+    Heatmap / > ,
     document.getElementById('heatmap')
 );

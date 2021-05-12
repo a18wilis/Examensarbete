@@ -1,8 +1,9 @@
 #heatmap{
-    width: 1000px;
-    height: 600px;
+    width: 1280px;
+    height: 640px;
+    background-image: url(worldmap1280.jpg);
     border: 1px solid #000000;
-    margin: auto;
+    margin: auto auto 25px auto;
 }
 .options { position: fixed; top: 10; right: 460; padding: 10px; background: rgba(255,255,255,0.6);
             border-bottom: 1px solid #ccc; border-left: 1px solid #ccc; line-height: 1; }
