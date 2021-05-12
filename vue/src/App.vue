@@ -17,9 +17,10 @@ export default {
 
 <style>
 #app {
-    width: 1000px;
-    height: 600px;
+    width: 1280px;
+    height: 640px;
     border: 1px solid #000000;
-    margin: auto;
+    margin: auto auto 25px auto;
+    background-image: url(../public/worldmap1280.jpg)
 }
 </style>

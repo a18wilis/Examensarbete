@@ -1,5 +1,5 @@
 <template>
-        <canvas id='canvas'/>
+        <canvas id='canvas' width = "1280" height = "640"/>
 </template>
 
 <script>
@@ -89,7 +89,7 @@ export default {
             var heat = simpleheat('canvas').max(1000000).data(filteredData);
 
             //Change radius, for testing
-            heat.radius(45, 45);
+            heat.radius(5, 5);
 
             heat.gradient({
                 0.25: 'blue',
@@ -107,22 +107,24 @@ export default {
         loadJSON(function (response) {
             // Parse JSON string to JSON object
             var json = JSON.parse(response);
+            
+            //Format longitude and latitude
+            function formatLon(lon) {
+                lon = (lon * 3.5555) + 640;
+                return lon;
+            }
+
+            function formatLat(lat) {
+                lat = (lat * -3.5555) + 320;
+                return lat;
+            }
 
             //Extract latitude and longitude coordinates from all locations
             for (var i = 0; i < json.length; i++) {
-                coordinates.push([json[i].name, parseInt(json[i].latitude), parseInt(json[i].longitude)]);
+                coordinates.push([json[i].name, formatLon(json[i].longitude), formatLat(json[i].latitude)]);
             }
         }, files[1]);
         }
     },
 };
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-#canvas{
-    width:100%;
-    height: 100%;
-
-}
-</style>
