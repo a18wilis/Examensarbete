@@ -36,6 +36,13 @@ export default {
             };
             xObj.send(null);
         }
+        
+        function getDataSize(data){
+            const size = encodeURI(JSON.stringify(data)).split(/%..|./).length - 1;
+            const kiloBytes = size / 1024;
+            //const megaBytes = kiloBytes / 1024;
+            console.log(kiloBytes);
+        }
 
         // Convert JSON to string and store it
         // Extract ISO-codes and total cases
@@ -50,7 +57,7 @@ export default {
 
             // Extract location-name and total cases for each ISO-code
             var locForMap = [];
-            
+
             //Access array of every country by ISO-code
             for (i = 0; i < iso.length; i++) {
                 for (var j = 0; j < coordinates.length; j++) {
@@ -58,16 +65,17 @@ export default {
                         locForMap[i] = coordinates[j][0];
 
                         //Get total cases for every country
+                        var c = 0;
                         json[iso[i]].data.forEach(function (obj) {
-                            if (Object.keys(obj).includes("total_cases")) {
-                                cases[i] = ++obj.total_cases;
+                            if (Object.keys(obj).includes("people_vaccinated")) {
+                                c = c + obj.people_vaccinated;
                             }
                         })
+                        cases[i] = c;
                         console.log(iso[i] + " " + cases[i]);
                     }
                 }
             }
-
             console.log("Fetchted total cases in " + cases.length);
 
             //Push coordinates and total cases data to a single array
@@ -86,9 +94,11 @@ export default {
             });
             console.log("Collected Data:");
             console.log(filteredData);
+            getDataSize(filteredData);
+            
             var heat = simpleheat('canvas').max(1000000).data(filteredData);
 
-            //Change radius, for testing
+            //Set radius to given value from form
             heat.radius(5, 5);
 
             heat.gradient({
@@ -107,8 +117,8 @@ export default {
         loadJSON(function (response) {
             // Parse JSON string to JSON object
             var json = JSON.parse(response);
-            
-            //Format longitude and latitude
+
+            //Format longitude and latitude to correct X
             function formatLon(lon) {
                 lon = (lon * 3.5555) + 640;
                 return lon;
