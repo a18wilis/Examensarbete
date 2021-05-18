@@ -1,27 +1,56 @@
 <template>
+        <div>
         <canvas id='canvas' width = "1280" height = "640"/>
+        <p>
+        Point Radius: <input v-model="prad" type="number" id="prad" v-on:input="storePrad"> 
+        Blur Radius: <input v-model="brad" type="number" id="brad" v-on:input="storeBrad">
+        Data type: <select v-model="data">
+            <option value="total_cases">Total Cases</option>
+            <option value="total_deaths">Total Deaths</option>
+            <option value="people_vaccinated">People Vaccinated</option>
+        </select>
+        Max value: <select v-model="max">
+            <option value="10000">10000</option>
+            <option value="1000000">1000000</option>
+            <option value="100000000">100000000</option>
+        </select>
+        <button @click=render id="renderBtn">Render</button>
+        </p>
+        </div>
 </template>
 
 <script>
 import * as simpleheat from 'simpleheat';
 export default {
     name: 'Heatmap',
-    mounted() {
-        this.init();
-    },
+    data: function() {
+  return {
+   prad: '',
+   brad: '',
+   data: '',
+   max: ''
+  };
+},
     methods: {
-
-        init() {
-        
+        storePrad (e) {
+            this.prad = e.target.value;
+        },
+        storeBrad (e) {
+            this.brad = e.target.value;
+        },
+        render() {
         //Load JSON-file containing dataset
         var files = ['https://raw.githubusercontent.com/a18wilis/Examensarbete/main/dataset/owid-covid-data_040521.json', 'https://raw.githubusercontent.com/a18wilis/Examensarbete/main/dataset/countries.json'];
-            
         var iso = [];
         var cases = [];
         var coordinates = [];
         var mapData = [];
         var filteredData = [];
-
+        var prad = this.prad;
+        var brad = this.brad;
+        var dataType = this.data;
+        var max = this.max;
+        
         //Load JSON-file containing datasets
         function loadJSON(callback, jsonFile) {
             var xObj = new XMLHttpRequest();
@@ -35,13 +64,6 @@ export default {
                 }
             };
             xObj.send(null);
-        }
-        
-        function getDataSize(data){
-            const size = encodeURI(JSON.stringify(data)).split(/%..|./).length - 1;
-            const kiloBytes = size / 1024;
-            //const megaBytes = kiloBytes / 1024;
-            console.log(kiloBytes);
         }
 
         // Convert JSON to string and store it
@@ -67,16 +89,24 @@ export default {
                         //Get total cases for every country
                         var c = 0;
                         json[iso[i]].data.forEach(function (obj) {
-                            if (Object.keys(obj).includes("people_vaccinated")) {
+                            if (Object.keys(obj).includes(dataType)) {
+                            switch(dataType) {
+                             case "total_cases":
+                                c = c + obj.total_cases
+                                break;
+                            case "total_deaths":
+                                c = c + obj.total_deaths;
+                                break;
+                            case "people_vaccinated":
                                 c = c + obj.people_vaccinated;
+                                break;
+                            }
                             }
                         })
                         cases[i] = c;
-                        console.log(iso[i] + " " + cases[i]);
                     }
                 }
             }
-            console.log("Fetchted total cases in " + cases.length);
 
             //Push coordinates and total cases data to a single array
             for (i = 0; i < locForMap.length; i++) {
@@ -92,14 +122,11 @@ export default {
             filteredData = mapData.filter(function (el) {
                 return el != null;
             });
-            console.log("Collected Data:");
-            console.log(filteredData);
-            getDataSize(filteredData);
             
-            var heat = simpleheat('canvas').max(1000000).data(filteredData);
+            var heat = simpleheat('canvas').max(max).data(filteredData);
 
             //Set radius to given value from form
-            heat.radius(5, 5);
+            heat.radius(prad, brad);
 
             heat.gradient({
                 0.25: 'blue',
