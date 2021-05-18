@@ -17,6 +17,7 @@ class Heatmap extends React.Component {
         var coordinates = [];
         var mapData = [];
         var filteredData = [];
+        var dataType = get('datatype');
 
         function get(id) {
             return document.getElementById(id).value;
@@ -35,13 +36,6 @@ class Heatmap extends React.Component {
                 }
             };
             xObj.send(null);
-        }
-        
-        function getDataSize(data){
-            const size = encodeURI(JSON.stringify(data)).split(/%..|./).length - 1;
-            const kiloBytes = size / 1024;
-            const megaBytes = kiloBytes / 1024;
-            console.log(kiloBytes);
         }
 
         // Convert JSON to string and store it
@@ -67,17 +61,24 @@ class Heatmap extends React.Component {
                         //Get total cases for every country
                         var c = 0;
                         json[iso[i]].data.forEach(function (obj) {
-                            if (Object.keys(obj).includes("people_vaccinated")) {
-                                c = c + obj.people_vaccinated;
+                            if (Object.keys(obj).includes(dataType)) {
+                                switch (dataType) {
+                                    case "total_cases":
+                                        c = c + obj.total_cases
+                                        break;
+                                    case "total_deaths":
+                                        c = c + obj.total_deaths;
+                                        break;
+                                    case "people_vaccinated":
+                                        c = c + obj.people_vaccinated;
+                                        break;
+                                }
                             }
-                        })
+                        });
                         cases[i] = c;
-                        console.log(iso[i] + " " + cases[i]);
                     }
                 }
             }
-            console.log("Fetchted total cases in " + cases.length);
-
             //Push coordinates and total cases data to a single array
             for (i = 0; i < locForMap.length; i++) {
                 for (j = 0; j < coordinates.length; j++) {
@@ -92,11 +93,8 @@ class Heatmap extends React.Component {
             filteredData = mapData.filter(function (el) {
                 return el != null;
             });
-            console.log("Collected Data:");
-            console.log(filteredData);
-            getDataSize(filteredData);
-            
-            var heat = simpleheat('canvas').max(1000000).data(filteredData);
+
+            var heat = simpleheat('canvas').max(get('max')).data(filteredData);
 
             //Set radius to given value from form
             heat.radius(get('prad'), get('brad'));
@@ -142,15 +140,27 @@ class Heatmap extends React.Component {
             <
             canvas id = "canvas"
             width = "1280"
-            height = "640" > < /canvas>
-            <p> Point Radius: < input type = "number"
+            height = "640" > < /canvas> <
+            p > Point Radius: < input type = "number"
             id = "prad" / >
             Blur Radius: < input type = "number"
             id = "brad" / >
+            Data type: < select id = "datatype" >
             <
-            button onClick = {
+            option value = "total_cases" > Total Cases < /option> <
+            option value = "total_deaths" > Total Deaths < /option> <
+            option value = "people_vaccinated" > People Vaccinated < /option> <
+            /select>
+            Max value: < select id = "max" >
+            <
+            option value = "10000" > 10000 < /option> <
+            option value = "1000000" > 1000000 < /option> <
+            option value = "100000000" > 100000000 < /option> <
+            /select> <
+            button id = "renderBtn"
+            onClick = {
                 this.renderMap
-            } > Render < /button> </p> <
+            } > Render < /button> </p > <
             /div>
         )
     }
