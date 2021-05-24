@@ -50,6 +50,11 @@ export default {
         var brad = this.brad;
         var dataType = this.data;
         var max = this.max;
+        var startTime;
+        var endTime;
+        
+        //Set starttime
+        startTime = new Date().getTime();
         
         //Load JSON-file containing datasets
         function loadJSON(callback, jsonFile) {
@@ -139,6 +144,14 @@ export default {
                 heat.draw();
             }
             draw();
+            
+            //Set endtime
+            endTime = new Date().getTime();
+
+            // Calculate render-time & store in localStorage
+            let renderTime = endTime - startTime;
+            localStorage.setItem("renderTime", renderTime);
+            
         }, files[0]);
 
         loadJSON(function (response) {
