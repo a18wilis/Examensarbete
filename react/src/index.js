@@ -9,7 +9,6 @@ class Heatmap extends React.Component {
     //If heatmap canvas is created, load scripts
 
     renderMap() {
-
         var files = ['./owid-covid-data_040521.json', './countries.json'];
 
         var iso = [];
@@ -18,10 +17,15 @@ class Heatmap extends React.Component {
         var mapData = [];
         var filteredData = [];
         var dataType = get('datatype');
+        var startTime;
+        var endTime;
 
         function get(id) {
             return document.getElementById(id).value;
         }
+
+        //Set starttime
+        startTime = new Date().getTime();
 
         //Load JSON-file containing datasets
         function loadJSON(callback, jsonFile) {
@@ -93,7 +97,7 @@ class Heatmap extends React.Component {
             filteredData = mapData.filter(function (el) {
                 return el != null;
             });
-
+            console.log(filteredData);
             var heat = simpleheat('canvas').max(get('max')).data(filteredData);
 
             //Set radius to given value from form
@@ -110,6 +114,13 @@ class Heatmap extends React.Component {
                 heat.draw();
             }
             draw();
+            
+            //Set endtime
+            endTime = new Date().getTime();
+
+            // Calculate render-time & store in localStorage
+            let renderTime = endTime - startTime;
+            localStorage.setItem("renderTime", renderTime);
         }, files[0]);
 
         loadJSON(function (response) {
@@ -149,14 +160,14 @@ class Heatmap extends React.Component {
             <
             option value = "total_cases" > Total Cases < /option> <
             option value = "total_deaths" > Total Deaths < /option> <
-            option value = "people_vaccinated" > People Vaccinated < /option> <
-            /select>
+            option value = "people_vaccinated" > People Vaccinated < /option> < /
+            select >
             Max value: < select id = "max" >
             <
             option value = "10000" > 10000 < /option> <
             option value = "1000000" > 1000000 < /option> <
-            option value = "100000000" > 100000000 < /option> <
-            /select> <
+            option value = "100000000" > 100000000 < /option> < /
+            select > <
             button id = "renderBtn"
             onClick = {
                 this.renderMap
