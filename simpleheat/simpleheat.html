@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>a18wilis - Vanilla JavaScript App</title>
+    <style>
+        div{
+            margin: auto;
+            position: relative;
+        }
+        #heatmap {
+            width: 1280px;
+            height: 640px;
+            background-image: url(worldmap1280.jpg);
+            border: 1px solid #000000;
+            margin: auto auto 25px auto;
+        }
+
+        .options {
+            position: fixed;
+            top: 10;
+            right: 460;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.6);
+            border-bottom: 1px solid #ccc;
+            border-left: 1px solid #ccc;
+            line-height: 1;
+        }
+
+        .options label {
+            width: 60px;
+            float: left;
+            text-align: right;
+            margin-right: 10px;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="heatmap">
+        <canvas id="canvas" width="1280" height="640"></canvas>
+    </div>
+    <div>
+        <p> Point Radius:
+            <input type="number" id="prad"/>
+            Blur Radius:
+            <input type="number" id="brad"/>
+            Data type:
+            <select id="datatype">
+                <option value="total_cases"> Total Cases </option>
+                <option value="total_deaths"> Total Deaths </option>
+                <option value="people_vaccinated"> People Vaccinated </option>
+            </select>
+            Max value: <select id="max">
+                <option value="10000"> 10000 </option>
+                <option value="1000000"> 1000000 </option>
+                <option value="100000000"> 100000000 </option>
+            </select>
+            <button id="renderBtn" onClick="renderMap()"> Render </button>
+        </p>
+    </div>
+    <div id="#app"> </div>
+</body>
+<script src="scripts/simpleheat.js"></script>
+<script src="scripts/heatmap.js"></script>
+
+</html>

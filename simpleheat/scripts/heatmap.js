@@ -1,101 +1,135 @@
-//Load JSON-file containing dataset
-var myFiles = ['https://raw.githubusercontent.com/a18wilis/Examensarbete/main/dataset/owid-covid-latest.json', 'https://raw.githubusercontent.com/a18wilis/Examensarbete/main/dataset/countries.json'];
+function renderMap(){
+    var files = ['https://raw.githubusercontent.com/a18wilis/Examensarbete/main/dataset/owid-covid-data_040521.json', 'https://raw.githubusercontent.com/a18wilis/Examensarbete/main/dataset/countries.json'];
 
-var iso = [];
-var cases = [];
-var coordinates = [];
-var mapData = [];
-var filteredData = [];
-
-//Load JSON-file containing datasets
-function loadJSON(callback, jsonFile) {
-    var xObj = new XMLHttpRequest();
-    xObj.overrideMimeType("application/json");
-    //Retrieve the file
-    xObj.open('GET', jsonFile, true);
-    xObj.onreadystatechange = function () {
-        if (xObj.readyState === 4 && xObj.status === 200) {
-            //Call the callback-function
-            callback(xObj.responseText);
+        var iso = [];
+        var cases = [];
+        var coordinates = [];
+        var mapData = [];
+        var filteredData = [];
+        var dataType = get('datatype');
+        var startTime;
+        var endTime;
+        function get(id) {
+            return document.getElementById(id).value;
         }
-    };
-    xObj.send(null);
-}
+        
+        //Set starttime
+        startTime = new Date().getTime();
 
-// Convert JSON to string and store it
-// Extract ISO-codes and total cases
-loadJSON(function (response) {
-    // Parse JSON string to JSON object
-    var json = JSON.parse(response);
+        //Load JSON-file containing datasets
+        function loadJSON(callback, jsonFile) {
+            var xObj = new XMLHttpRequest();
+            xObj.overrideMimeType("application/json");
+            //Retrieve the file
+            xObj.open('GET', jsonFile, true);
+            xObj.onreadystatechange = function () {
+                if (xObj.readyState === 4 && xObj.status === 200) {
+                    //Call the callback-function
+                    callback(xObj.responseText);
+                }
+            };
+            xObj.send(null);
+        }
 
-    // Push ISO-codes to array
-    for (var i = 0; i < Object.keys(json).length; i++) {
-        iso.push(Object.keys(json)[i]);
-    }
+        // Convert JSON to string and store it
+        // Extract ISO-codes and total cases
+        loadJSON(function (response) {
+            // Parse JSON string to JSON object
+            var json = JSON.parse(response);
 
-    // Extract location-name and total cases for each ISO-code
-    var locForMap = [];
-    for (var i = 0; i < iso.length; i++) {
-        for (var j = 0; j < coordinates.length; j++) {
-            if (coordinates[j][0] == json[iso[i]].location) {
-                index = coordinates.indexOf(coordinates[j][0]);
-                locForMap[i] = coordinates[j][0];
-                cases[i] = (parseInt(json[iso[i]].total_cases / 1000000));
+            // Push ISO-codes to array
+            for (var i = 0; i < Object.keys(json).length; i++) {
+                iso.push(Object.keys(json)[i]);
             }
-        }
-    };
-    for (var i = 0; i < locForMap.length; i++) {
-        for (var j = 0; j < coordinates.length; j++) {
-            if (locForMap[i] == coordinates[j][0]) {
-                mapData[i] = [coordinates[j][1], coordinates[j][2], cases[i]];
+
+            // Extract location-name and total cases for each ISO-code
+            var locForMap = [];
+
+            //Access array of every country by ISO-code
+            for (var i = 0; i < iso.length; i++) {
+                for (var j = 0; j < coordinates.length; j++) {
+                    if (coordinates[j][0] == json[iso[i]].location) {
+                        locForMap[i] = coordinates[j][0];
+
+                        //Get total cases for every country
+                        var c = 0;
+                        json[iso[i]].data.forEach(function (obj) {
+                            if (Object.keys(obj).includes(dataType)) {
+                                switch (dataType) {
+                                    case "total_cases":
+                                        c = c + obj.total_cases
+                                        break;
+                                    case "total_deaths":
+                                        c = c + obj.total_deaths;
+                                        break;
+                                    case "people_vaccinated":
+                                        c = c + obj.people_vaccinated;
+                                        break;
+                                }
+                            }
+                        });
+                        cases[i] = c;
+                    }
+                }
             }
-        }
-    };
-}, myFiles[0]);
+            //Push coordinates and total cases data to a single array
+            for (i = 0; i < locForMap.length; i++) {
+                for (j = 0; j < coordinates.length; j++) {
+                    if (locForMap[i] == coordinates[j][0]) {
+                        mapData[i] = [coordinates[j][1], coordinates[j][2], cases[i]];
+                    }
+                }
+            }
 
-loadJSON(function (response) {
-    // Parse JSON string to JSON object
-    var json = JSON.parse(response);
+            // Draw heatmap after data has been gathered
+            // Filter null-values from mapdata before adding to heatmap
+            filteredData = mapData.filter(function (el) {
+                return el != null;
+            });
+            console.log(filteredData);
+            var heat = simpleheat('canvas').max(get('max')).data(filteredData);
 
-    //Extract latitude and longitude coordinates from all locations
-    for (var i = 0; i < json.length; i++) {
-        coordinates.push([json[i].name, parseInt(json[i].latitude), parseInt(json[i].longitude)]);
-    }
-}, myFiles[1]);
+            //Set radius to given value from form
+            heat.radius(get('prad'), get('brad'));
 
-// Add delay to heatmap render in order to let mapData configure
-setTimeout(function () {
+            heat.gradient({
+                0.25: 'blue',
+                0.50: 'lime',
+                0.75: 'yellow',
+                1.0: 'red'
+            });
 
-    // Filter null-values from mapdata before adding to heatmap
-    filteredData = mapData.filter(function (el) {
-        return el != null;
-    });
+            function draw() {
+                heat.draw();
+            }
+            draw();
+            
+            //Set endtime
+            endTime = new Date().getTime();
 
-    var heat = simpleheat('canvas').max(10).data(filteredData);
-    heat.gradient({
-        0.25: 'blue',
-        0.50: 'lime',
-        0.75: 'yellow',
-        1.0: 'red'
-    });
+            // Calculate render-time & store in localStorage
+            var renderTime = endTime - startTime;
+            localStorage.setItem("renderTime", renderTime);
+        }, files[0]);
 
-    function draw() {
-        heat.draw();
-    }
-    draw();
+        loadJSON(function (response) {
+            // Parse JSON string to JSON object
+            var json = JSON.parse(response);
 
-    //Change radius and blur functions (Not removed since they may be used to measure scalability)
-    var radius = get('radius'),
-        blur = get('blur'),
-        changeType = 'oninput' in radius ? 'oninput' : 'onchange';
+            //Format longitude and latitude to correct X
+            function formatLon(lon) {
+                lon = (lon * 3.5555);
+                return lon;
+            }
 
-    radius[changeType] = blur[changeType] = function (e) {
-        heat.radius(+radius.value, +blur.value);
-        frame = frame || window.requestAnimationFrame(draw);
-    }
+            function formatLat(lat) {
+                lat = (lat * -3.5555);
+                return lat;
+            }
 
-}, 100);
-
-function get(id) {
-    return document.getElementById(id);
+            //Extract latitude and longitude coordinates from all locations
+            for (var i = 0; i < json.length; i++) {
+                coordinates.push([json[i].name, formatLon(json[i].longitude), formatLat(json[i].latitude)]);
+            }
+        }, files[1]);
 };
