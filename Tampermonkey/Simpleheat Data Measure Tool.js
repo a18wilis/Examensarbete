@@ -1,26 +1,78 @@
 // ==UserScript==
 // @name         Simpleheat Data Measure Tool
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      2.0
 // @description  Measure Data Values Of Rendered Heatmaps
 // @author       William Isaksson
-// @match       http://localhost:3000/
+// @match       http://localhost/
 // @grant        none
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js
 // ==/UserScript==
 
-//Create 'Start test!'-button
+//Use @match file:///path/to/repository/heatmap/simpleheat.html to test on vanilla JS app.
+
+if (localStorage.getItem("TimeTestRunning") == null) {
+        localStorage.setItem("TimeTestRunning", false);
+ }
+if (localStorage.getItem("TimeTestIterations") == null) {
+        localStorage.setItem("TimeTestIterations", 0);
+ }
+
+//Create 'Start color test!'-button
 var btn = document.createElement ('div');
-btn.innerHTML = '<button id="getColorBtn" type="button"> Start test!</button>';
+
+btn.innerHTML = '<button id="getColorBtn" type="button"> Start color test!</button>';
 btn.setAttribute ('id', 'getColorBtn');
 document.body.appendChild (btn);
+
+var tbtn = document.createElement ('div');
+tbtn.innerHTML = '<button id="TimeBtn" type="button"> Start time test (1000 measures)!</button>';
+document.body.appendChild (tbtn);
+document.getElementById("TimeBtn").addEventListener("click", function(){
+    localStorage.setItem("TimeTestRunning", true);
+    performTimeTest();
+});
+
+//Measure render-times
+function performTimeTest(){
+    var iterationCount = parseInt(localStorage.getItem("TimeTestIterations"));
+    const renderBtn = document.getElementById('renderBtn');
+    var iterations = 100;
+
+    //Get Average RGB when render button is clicked
+    renderBtn.addEventListener("click", getAverageRGB, false);
+
+
+    if(iterationCount < iterations){
+        renderBtn.click();
+        setInterval(function(){
+            iterationCount++;
+            let time = parseInt(localStorage.getItem("renderTime"));
+            let t= JSON.parse(localStorage.getItem("timeArray"));
+            t += ", " + time;
+            localStorage.setItem("timeArray", JSON.stringify(t));
+            localStorage.setItem("TimeTestIterations", iterationCount);
+            getAverageRGB();
+            location.reload()
+        }, 1000);
+    }
+}
+
+//If rendertime-test is running, get render-time
+const isRunning = localStorage.getItem("TimeTestRunning");
+if(isRunning == "true"){
+    const iterationCount = parseInt(localStorage.getItem("TimeTestIterations"));
+    var iterDiv = document.createElement ('div');
+    iterDiv.innerHTML = "<p> Iteration " + iterationCount + "/1000 </p>";
+    document.body.appendChild(iterDiv);
+    performTimeTest();
+}
 
 document.getElementById("getColorBtn").addEventListener("click", function(){
     performTest();
 }, false);
 
-
-//Configurations to be used in tests
+//Measures used in study (Mätserier)
 var measures = [
     [5, 5],
     [15, 15],
@@ -39,10 +91,8 @@ var measures = [
     [55, 5],
     ];
 
-//Start the test
+//Start color test
 function performTest(){
-
-    //Get radius-inputs and render-button
     const pRad = document.getElementById('prad');
     const bRad = document.getElementById('brad');
     const renderBtn = document.getElementById('renderBtn');
@@ -132,8 +182,6 @@ function getAverageRGB() {
     rgb.g = ~~(rgb.g/count);
     rgb.b = ~~(rgb.b/count);
 
-    // log result in console
-    console.log(rgb.r + " " + rgb.g + " " + rgb.b);
 
     // store result in localStorage for easier sheet usage
     let r= JSON.parse(localStorage.getItem("r"));
@@ -146,7 +194,11 @@ function getAverageRGB() {
 
     let b = JSON.parse(localStorage.getItem("b"));
     b += ", " + rgb.b;
-    localStorage.setItem("b", JSON.stringify(b));
+    localStorage.setItem("b", JSON.stringify(b))
+
+    let c = JSON.parse(localStorage.getItem("dataPoints"));
+    c += ", " + count;
+    localStorage.setItem("dataPoints", JSON.stringify(c));
 
     }, 1000);
 }
