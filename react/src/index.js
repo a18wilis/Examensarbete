@@ -97,7 +97,6 @@ class Heatmap extends React.Component {
             filteredData = mapData.filter(function (el) {
                 return el != null;
             });
-            console.log(filteredData);
             var heat = simpleheat('canvas').max(get('max')).data(filteredData);
 
             //Set radius to given value from form
@@ -153,7 +152,7 @@ class Heatmap extends React.Component {
             width = "1280"
             height = "640" > < /canvas> <
             p > Point Radius: < input type = "number"
-            id = "prad" / >
+            id = "prad"/ >
             Blur Radius: < input type = "number"
             id = "brad" / >
             Data type: < select id = "datatype" >
